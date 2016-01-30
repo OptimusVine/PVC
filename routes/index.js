@@ -16,6 +16,18 @@ router.get('/', function(req, res, next){
 })
 */
 
+var controller = require('../controllers/index')
+
+router.route('/todos')
+	.get(function(req, res, next){
+		console.log(controller.a())
+		res.send(controller.a());
+	})
+	.post(function(req, res, next){
+		res.send('Need to code something here')
+		//TO_DO
+	})
+
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
@@ -73,15 +85,31 @@ router.route('/wines/:wine/comments')
 
 router.route('/workspaces')
 	.get(function(req, res, next){
-		Workspace.find(function(err, workspaces){ 
-			res.json(workspaces)
-			})
+		Workspace.find(function(err, workspaces){ res.json(workspaces) })
 	})
 	.post(function(req, res, next){
 		var workspace = new Workspace(req.body);
 		workspace.addWorkspace(function(err, workspace){
 			if(err) { return next(err);}
 			res.json(workspace);
+		})
+	})
+
+router.route('/workspaces/public')
+	.get(function(req, res, next){
+		var query = Workspace.find({'public':true});
+			query.exec(function(err, workspaces){
+				if (err) {return next(err);}
+				if (!workspaces) {return next(new Error("Can't find any workspaces"));}
+				res.json(workspaces)
+			})
+	})
+
+router.route('/workspaces/:workspace/public')
+	.put(function(req, res, next){
+		req.workspace.setPublic(function(err, workspace){
+			if (err) {return next(err);}
+			res.json(workspace)
 		})
 	})
 
@@ -102,6 +130,10 @@ router.get('/admin/update/workspaces', function(req, res, next){
 router.route('/workspaces/:workspace')
 	.get(function(req, res, next){
 			res.json(req.workspace)
+	})
+	.put(function(req, res, next){
+		req.workspace.setPublic()
+		res.json(req.workspace)
 	})
 
 // Small test rout to push  and save a Wine

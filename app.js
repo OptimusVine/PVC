@@ -5,6 +5,9 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var r = require('rethinkdb');
+
+var config = require('./config/config');
 
 require('./models/index');
 

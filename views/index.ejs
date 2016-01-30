@@ -8,7 +8,7 @@
   <style> .glyphicon-thumbs-up { cursor:pointer } </style>
 </head>
   <body ng-app="PVC">
-  	<h2> Does this non-script work? </h2>
+  	<h2> </h2>
 
   	<div>
   		<ui-view></ui-view>
@@ -16,27 +16,108 @@
 
 
     <script type="text/ng-template" id="/home.html">
-    	<div>
-    		<h2>{{ test }}</h2>
-    	</div>
+    		<div ng-repeat="workspace in workspaces">
+          {{ workspace.data.label }}
+        </div>
+
+        <div ng-hide="isEmpty()">
+        workspaces is empty, it may be pending
+        </div>
     </script>
 
     <script type="text/ng-template" id="/wines.html">
-    	<div>
+      <div class="page-header" style="margin-left:30px">
+       <h2> List of {{ winesLength }} Wines in the PVC database </h2>
+      </div>
+    	<div style="margin-left:20px;">
     		<div ng-repeat="wine in wines">
-    			This is a {{ wine.name }} type of wine
+         <span style="font-size:20px; margin-left:10px;">
+    			Vintage: {{ wine.vintage }},  Name: {{ wine.name}} <span ng-show="wine.varietal">, Varietal: {{ wine.varietal }} </span>
+          </span>
+          <span>
+            <a href="#/wines/{{wine._id}}">Comments</a>
+          </span>
     		</div>
-    		But not in the div here
     	</div>
+
+      <div ng-show="error" class="alert alert-danger row">
+        <span>{{ error.message }}</span>
+      </div>
+
+      <div>
+        <form ng-submit="addWine()"
+          style="margin-top:30px; margin-left:20px; width:500px;">
+          <h3>Add a new Wine</h3>
+          <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text"
+              class="form-control"
+              plceholder="Name"
+              ng-model="name"></input>
+          </div>
+          <div class="form-group">
+             <label for="varietal">Varietal:</label>
+              <input type="text"
+              class="form-control"
+              plceholder="Varietal"
+              ng-model="varietal"></input>
+          </div>
+          
+          <div class="form-group">
+              <label for="vintage">Vintage:</label>
+             <input type="text"
+              class="form-control"
+              style="display:inline;"
+              plceholder="Vintage"
+              ng-model="vintage">  </input>
+          </div>
+          
+          <button type="submit" class="btn btn-primary">Add Wine</button>
+        </form>
+      </div>
+
+    	
+
     </script>
 
     <script type="text/ng-template" id="/workspaces.html">
-    	<div>
+    	<div ng-show="workspaces">
     		<div ng-repeat="workspace in workspaces">
     			This is a {{ workspace }} type of wine
     		</div>
     	</div>
+
+      <div ng-hide="isEmpty()">
+        workspaces is empty, it may be pending
+      </div>
     </script>
+
+    <script type="text/ng-template" id="/wine.html">
+  <div class="page-header">
+    <h3>
+      YO!
+      {{ wine.name }}
+    </h3>
+    <div ng-repeat="comment in wine.comments">
+      <span style="font-size:20px; margin-left:10px;">
+        {{comment.body}}
+      </span>
+  </div>
+
+  <form ng-submit="addComment()"
+    style="margin-top:30px;">
+    <h3>Add a new comment</h3>
+
+    <div class="form-group">
+      <input type="text"
+      class="form-control"
+      placeholder="Comment"
+      ng-model="body"></input>
+    </div>
+    <button type="submit" class="btn btn-primary">Post</button>
+  </form>
+
+  </script>
 
   </body>
 </html>

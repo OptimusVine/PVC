@@ -5,9 +5,6 @@ var keys = require ('../../private/keys.js');
 var userId = keys.userId;
 var password = keys.password;
 
-console.log(userId);
-console.log(password)
-
 var sessionid = "";
 var cookieString = "";
 var workspaces;
@@ -109,6 +106,7 @@ exports.getWorkspaces = function(callback) {
 }
 
 var getAuth = function(){
+	console.log(' : Requesting PLM Authentication \n -------------------------')
 	request.post('https://clubw.autodeskplm360.net/rest/auth/1/login', {form: param}, function(err, response){
 	if(err){
 		// console.log(err);
@@ -121,15 +119,27 @@ var getAuth = function(){
 	sessionid = resBody.sessionid;
 	cookieString = "customer=CLUBW;JSESSIONID=" + sessionid.toString();
 	console.log(cookieString + " is our Auth Key!");
-	
 	setOptions("", cookieString)
 	console.log(options);
+	console.log(' : PLM Authentication Successful \n -------------------------')
 	return;
 		}	
 	})}
 
-getAuth();
-// setTimeout(receiveWorkspaces, 75000);	
-// setTimeout(receiveWines, 10000);
+var checkPing = function(){
+	request.get('http://www.google.com', function(err, res){
+		if (err) { 
+			console.log(err);
+			return; }
+		else {getAuth();
+			return};
+	})
+}
+
+// Check for Ping, which calls GetAuth if successful or prints the error if not.
+
+checkPing();
+//setTimeout(receiveWorkspaces, 7500);	
+//setTimeout(receiveWines, 10000);
 
 

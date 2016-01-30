@@ -6,17 +6,11 @@ The goal of this project is to create a simple UI that can:
 
 
 TODO:
-: Learn how to use Mocha and test that we can GET Workspaces and it runs more than null
-: Ensure Git is setup and current project is loaded into Repo
-: Create code that will test if I can ping the internet, the run the PLM auth code in "controllers/index.js"
 : Create code that when PLM.Auth is initiated --- it will get token, then workspaces, populating memory before queue (need to test
-: Create test cases that can be run when I run "NPM Start"
-: When hitting /workspaces if workspace memory is empty, it will let me know that it is "Pending" --- Need Angular???
-: Create the view pages with Script for
-	: Inserting a wine
-	: Making a Comment
 : Create a Worklist Model / To-Do List
 	: Allow Worklist to be 
+: On Home, all public workspaces should be visibile with links to their site (only wine on testing)
+: Wine Information Workspace should have an attribute of Public set to True, anytime workspaces is updated
 
 
 Requirements
