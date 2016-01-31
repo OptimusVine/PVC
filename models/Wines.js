@@ -1,7 +1,9 @@
 var mongoose = require('mongoose');
 
 var WineSchema = new mongoose.Schema({
-	name: {type: String, required: true},
+	id: {type: String},
+	description: {type: String},
+	name: {type: String},
 	varietal: String,
 	vintage: {  type: Number, 
 				min: 2000, 
@@ -10,13 +12,14 @@ var WineSchema = new mongoose.Schema({
 		name: {type: String},
 		country: {type: String}  },
 	comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}],
+	todos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Todo'}],
 	url: String,
 	plm_id: Number
 });
 
 WineSchema.methods.addWine = function(err) {
-	this.save();
-	console.log('I have save a wine via the addWine function, doing any checks you need');
-}
+	if(this.save()){
+	console.log('I saved a wine named ' + this.name);
+}}
 
 mongoose.model('Wine', WineSchema);

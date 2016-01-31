@@ -5,8 +5,10 @@ var mongoose = require('mongoose');
 var Wine = mongoose.model('Wine') // based on called index.js in app.js --- this should allow me to variablize all models
 var Workspace = mongoose.model('Workspaces') // based on called index.js in app.js --- this should allow me to variablize all models
 var Comment = mongoose.model('Comment') // based on called index.js in app.js --- this should allow me to variablize all models
+var Obj = mongoose.model('Obj')
+var ToDo = mongoose.model('ToDo')
 
-var plmAuth = require('../middlewares/auth/autodeskplm'); // Check TO-DO code for a change here
+// var plmAuth = require('../middlewares/auth/autodeskplm'); // Check TO-DO code for a change here
 
 /*
 router.get('/', function(req, res, next){
@@ -20,12 +22,23 @@ var controller = require('../controllers/index')
 
 router.route('/todos')
 	.get(function(req, res, next){
-		console.log(controller.a())
-		res.send(controller.a());
+		controller.todoGet(req, res)
 	})
 	.post(function(req, res, next){
-		res.send('Need to code something here')
-		//TO_DO
+		controller.todoPost(req, res);		
+	})
+
+router.route('/todos/incomplete')
+	.get(function(req, res, next){
+		controller.todoGetIncomplete(req, res);
+	})
+
+router.route('/todos/:todo')
+	.get(function(req, res, next){
+		controller.todoGetById(req, res);
+	})
+	.put(function(req, res, next){
+		controller.todoPut(req, res);
 	})
 
 router.get('/', function(req, res, next) {
@@ -136,12 +149,32 @@ router.route('/workspaces/:workspace')
 		res.json(req.workspace)
 	})
 
+router.route('/external/PLM/workspaces/52/items/:record')
+	.get(function(req, res, next){
+		controller.fetchPlmWine(req, res);
+	})
+
+router.param('record', function(req, res, next, id){
+	req.record = id;
+	return next();
+})
+
 // Small test rout to push  and save a Wine
+/*
 router.get('/test/:workspace', function(req, res, next){
 		var workspace = req.workspace;
 		workspace.uri = "I have changed this URI!!! HAHAHAHAHA"
 		workspace.addWorkspace();
  		res.end()
+})
+*/
+
+router.get('/test/wine', function(req, res, next){
+		var wine = plmAuth.receiveWine()
+		var obj = new Obj(wine);
+		obj.save();
+		res.json(obj)
+
 })
 
 /*  Directing how to handle the Workspace parameter  */
@@ -165,5 +198,18 @@ router.param('wine', function(req, res, next, id){
 		return next()
 	})
 })
+
+/*  Directing how to handle the Workspace parameter  */
+router.param('todo', function(req, res, next, id){
+	var query = ToDo.findById(id);
+	query.exec(function(err, todo){
+		if (err){ return next(err); }
+		if (!todo) {return next(new Error('can\'t find todo')); }
+		req.todo = todo;
+		return next()
+	})
+})
+
+
 
 module.exports = router;

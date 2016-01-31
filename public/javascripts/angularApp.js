@@ -13,7 +13,7 @@ app.factory('wines', ['$http', function($http){
 
 	o.create = function(wine) {
 		return $http.post('/wines', wine).success(function(data){
-			o.wines.push(data)
+			o.wines.push(data).error(console.log(error));
 		})
 	};
 
@@ -25,6 +25,11 @@ app.factory('wines', ['$http', function($http){
 
 	o.addComment = function(id, comment) {
 		return $http.post('/wines/' + id + '/comments', comment)
+	}
+
+	o.addToDo = function(toDo) {
+		console.log("WAS I CaLLED?")
+		return $http.post('/todos', toDo)
 	}
 
 	return o;
@@ -54,6 +59,20 @@ app.factory('workspaces', ['$http', function($http){
 	return o;
 }])
 
+app.factory('todos', ['$http', function($http){
+	var o = {
+		todos: []
+	}
+		o.getAll = function() {
+		return $http.get('/todos/incomplete').success(function(data){
+			angular.copy(data, o.todos);
+		});
+	};
+
+
+
+	return o
+}])
 
 
 app.factory('wine', ['$http', function($http){
@@ -104,6 +123,18 @@ app.controller('WineCtrl', [
 			$scope.vintage = "";
 		}
 
+		$scope.addToDo = function(){
+			if($scope.name === '' | $scope.summary === ''){ return; }
+			var tempToDo = {
+				name: $scope.name,
+				summary: $scope.summary,
+				wines: $scope.wine
+			};
+				wines.addToDo(tempToDo)
+				$scope.name = '';
+				$scope.summary = '';
+		}
+
 		$scope.addComment = function(){
 			if($scope.body === '') {return;}
 				wines.addComment(wine._id, {
@@ -122,6 +153,13 @@ app.controller('WorkspacesCtrl', [
 		$scope.test = 'This is the workspaces site';
 		$scope.workspaces = workspaces.workspaces;
 		$scope.isEmpty = workspaces.isEmpty;
+	}])
+
+app.controller('ToDosCtrl', [
+	'$scope',
+	'todos',
+	function($scope, todos){
+		$scope.todos = todos.todos;
 	}])
 
 app.config([
@@ -149,6 +187,17 @@ function($stateProvider, $urlRouterProvider) {
     	resolve: {
     		winePromise: ['wines', function(wines){
     			return wines.getAll();
+    		}]
+    	}
+    })
+
+    .state('todos', {
+    	url: '/todos',
+    	templateUrl: '/todos.html',
+    	controller: 'ToDosCtrl',
+    	resolve: {
+    		toDoPromoise: ['todos', function(todos){
+    			return todos.getAll();
     		}]
     	}
     })

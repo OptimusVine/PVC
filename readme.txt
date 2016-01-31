@@ -7,10 +7,10 @@ The goal of this project is to create a simple UI that can:
 
 TODO:
 : Create code that when PLM.Auth is initiated --- it will get token, then workspaces, populating memory before queue (need to test
-: Create a Worklist Model / To-Do List
-	: Allow Worklist to be 
-: On Home, all public workspaces should be visibile with links to their site (only wine on testing)
-: Wine Information Workspace should have an attribute of Public set to True, anytime workspaces is updated
+: Figure out how to break out Controllers based on controllers/index.js
+: Update Obj model to be able to store a generic large object for offline work
+: Updavte view for ToDo's to show Referenced Wines (if applicable)
+: Allow a ToDo to be created from a Wine Page
 
 
 Requirements

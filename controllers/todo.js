@@ -1,29 +1,3 @@
-var mongoose = require('mongoose');
-
-var plmAuth = require('../middlewares/auth/autodeskplm'); 
-
-var ToDo = mongoose.model('ToDo');
-var Wine = mongoose.model('Wine');
-
-var ToDoCtrl = require('./todo')
-
-exports.a = function(){
-	return "Whoa!";
-}
-
-exports.fetchPlmWine = function(req, res){
-	plmAuth.fetchWine(req, res, function(data){
-		// console.log(data);
-
-		d = plmAuth.parseToWine(data);		
-
-
-		wine = new Wine(d);
-		wine.addWine();
-	})
-	//res.json(req.record)
-}
-
 exports.todoGet = function(req, res){
 	ToDo.find(function(err, todos){
 		res.json(todos)
@@ -53,4 +27,5 @@ exports.todoPut = function(req, res){
 	req.todo.completeIt(function(err, todo){
 		res.json(todo)
 	})
+
 }
