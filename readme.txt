@@ -6,11 +6,15 @@ The goal of this project is to create a simple UI that can:
 
 
 TODO:
-: Create code that when PLM.Auth is initiated --- it will get token, then workspaces, populating memory before queue (need to test
 : Figure out how to break out Controllers based on controllers/index.js
+	: For now, call each object's controller on the routes/index page and call them as var's
 : Update Obj model to be able to store a generic large object for offline work
-: Updavte view for ToDo's to show Referenced Wines (if applicable)
-: Allow a ToDo to be created from a Wine Page
+: Build error handling helper that will pass support messages
+	: If PLM gives Error 500, give ability to 
+		: Check for Ping
+		: Re-Authorize
+: When completeing a wine's todo --- hit Wine/:id/Todos/Incomplete with a get and return all outstanding To-Dos
+: List the date created next to the comments
 
 
 Requirements

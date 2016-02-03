@@ -17,11 +17,9 @@ ToDoSchema.methods.addToDo = function(err) {
 		}
 }
 
-
 ToDoSchema.methods.completeIt = function(cb) {
 	this.complete = true;
 	this.save(cb);
 }
-
 
 mongoose.model('ToDo', ToDoSchema);

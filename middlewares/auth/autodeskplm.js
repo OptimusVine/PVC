@@ -119,15 +119,20 @@ exports.fetchWine = function(req, res, cb){
 			console.log(err);
 			res.send("These is an Error [Check Console] when attempting to get Wine ID: " + req.record);
 		} else if (response.statusCode != 200) {
-			console.log('Response Status Code: ' + response.statusCode)
+			console.log('Response Status Code: ' + response.statusCode);
+			if (response.statusCode === 404) {
+				var msg404 = 'Check to see if there is a wine at this id via the UI';
+				console.log(msg404);
+				res.send(msg404);
+			} else if (response.statusCode === 500) {
+				var msg500 = 'Check if there is a PING - or - if your Auth has expired'
+				console.log(msg500);
+				res.send(msg500);
+			}
 		} else {
 		console.log('Status Code: ' + response.statusCode)
 		var resBody = JSON.parse(response.body);
 		var resItem = resBody.item;
-	//	console.log("******* Printing Body of Object " + resBody.details.dmsID + " *********")
-	//	console.log(resBody.metaFields.entry[1])
-	//	console.log("******* Printing Same of MetaData of Object " + resBody.details.dmsID + " *********")
-		console.log(JSON.stringify(resItem, null, 2))
 		res.json(resItem)
 		cb(resItem);
 		
@@ -185,8 +190,6 @@ var mapPlmToModel = function(arrI, result){
 
 	for (var i = 0; i < map.length; i++){
 		if ( map[i][0] == arrI){
-		//	console.log("Found one: " + map[i][0] + " matches " + arrI)
-		//	console.log("Resulting out : " + map[i][1])
 			result (map[i][1])
 		}
 	}	
@@ -236,7 +239,7 @@ var checkPing = function(func){
 
 // Check for Ping, which calls GetAuth if successful or prints the error if not.
 
-checkPing(getAuth);
+//checkPing(getAuth);
 //setTimeout(receiveWorkspaces, 7500);	
 //setTimeout(receiveWines, 5000);
 //setTimeout(receiveWine, 5000);

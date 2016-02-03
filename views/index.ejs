@@ -38,8 +38,13 @@
 
 
         <div ng-repeat="todo in todos">
-          Please Complete: {{ todo.name }} <br>
-          <span style='margin-left:20px'> Summary: {{todo.summary}}<span>
+          Please Complete: {{ todo.name }} ---- 
+            <span ng-click="completeToDo(todo._id)">
+            <a href="/#/todos">Complete!</a></span>
+          <div style='margin-left:20px'> Summary: {{todo.summary}}<div>
+            <div ng-repeat="wine in todo.wines">
+            <a href="#/wines/{{wine}}">Wine: {{wine}}</a>
+            </div>
         </div>
 
     </div>  
@@ -47,15 +52,32 @@
 
     <script type="text/ng-template" id="/wines.html">
       <div class="page-header" style="margin-left:30px">
-       <h2> List of {{ winesLength }} Wines in the PVC database </h2>
+       <h2> List of {{ winesLength }} <a href="#/wines">Wines</a> in the PVC database </h2>
       </div>
+
+      <div style="margin-left:20px">
+         <form
+          style="margin-top:30px;">
+          <h3>Search for a Wine</h3>
+
+          <div class="form-group">
+            <input type="text"
+            class="form-control"
+            placeholder="Search"
+            ng-model="search"></input>
+          </div>
+          <a href="#/search/{{search}}">
+          <button type="submit" class="btn btn-primary">Search</button>
+          </a>
+        </form>
+      </div>
+
+
     	<div style="margin-left:20px;">
     		<div ng-repeat="wine in wines">
          <span style="font-size:20px; margin-left:10px;">
-    			Vintage: {{ wine.vintage }},  Name: {{ wine.name}} <span ng-show="wine.varietal">, Varietal: {{ wine.varietal }} </span>
-          </span>
-          <span>
-            <a href="#/wines/{{wine._id}}">Comments</a>
+    			Wine: {{ wine.vintage }} {{ wine.name}}<span ng-show="wine.varietal">, {{ wine.varietal }} : </span>
+            <a href="#/wines/{{wine._id}}">Details</a>
           </span>
     		</div>
     	</div>
@@ -95,9 +117,6 @@
           <button type="submit" class="btn btn-primary">Add Wine</button>
         </form>
       </div>
-
-    	
-
     </script>
 
     <script type="text/ng-template" id="/workspaces.html">
@@ -115,49 +134,60 @@
 
 
     <script type="text/ng-template" id="/wine.html">
-  <div class="page-header">
-    <h3>
-      YO!
-      {{ wine.name }}
-    </h3>
-    <div ng-repeat="comment in wine.comments">
-      <span style="font-size:20px; margin-left:10px;">
-        {{comment.body}}
-      </span>
-  </div>
+    <div style="margin-left:20px"
+      <div class="page-header">
+        <h3>
+          {{ wine.name }}
+        </h3>
+        <div ng-repeat="comment in wine.comments">
 
-  <form ng-submit="addComment()"
-    style="margin-top:30px;">
-    <h3>Add a new comment</h3>
+          <span style="font-size:20px; margin-left:10px;">
+            {{comment.body}}
+          </span>
+      </div>
 
-    <div class="form-group">
-      <input type="text"
-      class="form-control"
-      placeholder="Comment"
-      ng-model="body"></input>
-    </div>
-    <button type="submit" class="btn btn-primary">Post</button>
-  </form>
+        <form ng-submit="addComment()"
+          style="margin-top:30px;">
+          <h3>Add a new comment</h3>
 
-  <form ng-submit="addToDo()"
-    style="margin-top:30px;">
-    <h3>Add a new ToDo</h3>
+          <div class="form-group">
+            <input type="text"
+            class="form-control"
+            placeholder="Comment"
+            ng-model="body"></input>
+          </div>
+          <button type="submit" class="btn btn-primary">Post</button>
+        </form>
 
-    <div class="form-group">
-      <input type="text"
-      class="form-control"
-      placeholder="To Do Name"
-      ng-model="name"></input>
-    </div>
-    <div class="form-group">
-      <input type="text"
-      class="form-control"
-      placeholder="To Do Summary"
-      ng-model="summary"></input>
-    </div>
-    <button type="submit" class="btn btn-primary">Post</button>
-  </form>
+        <div ng-repeat="todo in wine.todos">
+        
+          <span style="font-size:20px; margin-left:10px;">
+            <span ng-hide="todo.complete">  
+            <button class="btn btn-primary" 
+            ng-click="completeToDo(todo._id)">X</button>
+            To-Do: {{todo.name}} </span>
+          </span>
+        </div>
 
+        <form ng-submit="addToDo()"
+          style="margin-top:30px;">
+          <h3>Add a new ToDo</h3>
+
+          <div class="form-group">
+            <input type="text"
+            class="form-control"
+            placeholder="To Do Name"
+            ng-model="name"></input>
+          </div>
+          <div class="form-group">
+            <input type="text"
+            class="form-control"
+            placeholder="To Do Summary"
+            ng-model="summary"></input>
+          </div>
+          <button type="submit" class="btn btn-primary">Post</button>
+        </form>
+      </div>
   </script>
 
   </body>

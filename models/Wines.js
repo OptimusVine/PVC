@@ -12,7 +12,7 @@ var WineSchema = new mongoose.Schema({
 		name: {type: String},
 		country: {type: String}  },
 	comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}],
-	todos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Todo'}],
+	todos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ToDo'}],
 	url: String,
 	plm_id: Number
 });

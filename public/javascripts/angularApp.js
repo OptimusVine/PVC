@@ -28,8 +28,21 @@ app.factory('wines', ['$http', function($http){
 	}
 
 	o.addToDo = function(toDo) {
-		console.log("WAS I CaLLED?")
 		return $http.post('/todos', toDo)
+	}
+
+	o.markComplete = function(todo) {
+			return $http.put('/todos/' + todo)
+			}
+
+	o.getIncomplete = function(id) {
+			return $http.get('/wines/' + id + '/todos/incomplete')
+	}
+
+	o.search = function(item) {
+		return $http.get('/search/' + item).success(function(data){
+			angular.copy(data, o.wines);
+		})
 	}
 
 	return o;
@@ -69,6 +82,11 @@ app.factory('todos', ['$http', function($http){
 		});
 	};
 
+		o.markComplete = function(todo) {
+			return $http.put('/todos/' + todo).success(function(){
+				o.getAll()
+			})
+		}
 
 
 	return o
@@ -97,13 +115,28 @@ app.controller('WineCtrl', [
 	'wines',
 	'wine',
 	function($scope, wines, wine){
+
 		$scope.wines = wines.wines;
 		if(wine){$scope.wine = wine};
 		$scope.winesLength = wines.wines.length;
 		
-		$scope.refreshWines = function(){
-			$scope.wines = wines.getAll();
+		$scope.completeToDo = function(todo){
+			wines.markComplete(todo)
+			.success(function(){
+				$scope.remove(todo)
+				})
 		}
+
+		$scope.remove = function(todo) { 
+			console.log(todo)
+			for (i = 0; i< $scope.wine.todos.length; i++){
+				if (todo === $scope.wine.todos[i]._id){
+					console.log($scope.wine.todos[i]._id + ' equals ' + todo)
+					$scope.wine.todos.splice(i,1);
+				}
+			}  
+		}
+
 
 		$scope.addWine = function(){
 			// if(!scope.name || !$scope.vintage || !$scope.varietal) {return;}
@@ -130,7 +163,9 @@ app.controller('WineCtrl', [
 				summary: $scope.summary,
 				wines: $scope.wine
 			};
-				wines.addToDo(tempToDo)
+				wines.addToDo(tempToDo).success(function(todo){
+					$scope.wine.todos.push(todo)
+				})
 				$scope.name = '';
 				$scope.summary = '';
 		}
@@ -160,6 +195,15 @@ app.controller('ToDosCtrl', [
 	'todos',
 	function($scope, todos){
 		$scope.todos = todos.todos;
+
+		$scope.hasWine = function(){
+			return $scope.todos.wines > 0;
+		}
+
+		$scope.completeToDo = function(todo){
+			todos.markComplete(todo)
+		}
+
 	}])
 
 app.config([
@@ -212,6 +256,17 @@ function($stateProvider, $urlRouterProvider) {
     		}], 
     		winePromise: ['wines', function(wines){
     			return wines.getAll();
+    		}]
+    	}
+    })
+
+    .state('search', {
+    	url: '/search/{query}',
+    	templateUrl: '/wines.html',
+    	controller: 'WineCtrl',
+    	resolve: {
+    		winePromise: ['$stateParams', 'wines', function($stateParams, wines){
+    			return wines.search($stateParams.query)
     		}]
     	}
     })
