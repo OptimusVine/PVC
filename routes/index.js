@@ -19,7 +19,7 @@ var User = mongoose.model('User')
 
 // var plmAuth = require('../middlewares/auth/autodeskplm'); // Check TO-DO code for a change here
 
-//var controller = require('../controllers/index')
+var controller = require('../controllers/index')
 
 router.route('/submit')
 	.post(messages.sendMail)
