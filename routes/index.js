@@ -26,11 +26,11 @@ router.route('/submit')
 
 router.route('/users')
 	.post(userController.postUsers)
-	.get(authController.isAuthenticated, userController.getUsers);
+	.get(userController.getUsers);
 
 router.route('/todos')
-	.get(authController.isAuthenticated, todoController.todoGet)
-	.post(authController.isAuthenticated, todoController.todoPost)
+	.get(todoController.todoGet)
+	.post(todoController.todoPost)
 
 router.route('/todos/incomplete')
 	.get(todoController.todoGetIncomplete)
