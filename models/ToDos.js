@@ -7,6 +7,7 @@ var ToDoSchema = new mongoose.Schema({
 	dateLateUpdate: {type: Date},
 	dateDue: {type: Date},
 	dateCompleted: {type: Date},
+	owner_id: String,
 	complete: {type: Boolean, default: false},
 	wines: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Wine'}]
 });

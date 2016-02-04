@@ -14,7 +14,8 @@ var WineSchema = new mongoose.Schema({
 	comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}],
 	todos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ToDo'}],
 	url: String,
-	plm_id: Number
+	plm_id: Number,
+	owner_id: String
 });
 
 WineSchema.methods.addWine = function(err) {

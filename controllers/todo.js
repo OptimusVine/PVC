@@ -29,14 +29,12 @@ exports.todoGetById = function(req, res){
 
 
 exports.todoPost = function(req, res, next){
-	console.log('ME here : ' + req.body.wines)
 	if (!req.body.wines){
 	req.body.wines = [];
 		for(i = 0; req.body['wines[' + i + ']']; i++){
 		req.body.wines.push(req.body['wines[' + i + ']'])
 		}
 	}
-	console.log('Now me here : ' + req.body.wines)
 	var todo = new ToDo(req.body);
 		todo.save(function(err, todoX){
 			if(err){return res.send.err;}

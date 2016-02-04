@@ -11,7 +11,15 @@ var config = require('./config/config');
 
 require('./models/index');
 
-mongoose.connect('mongodb://localhost/wines');
+var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development'
+
+// mongoose.connect('mongodb://localhost/wines');
+
+if (env === 'development'){
+   mongoose.connect('mongodb://localhost/wines');
+} else {
+mongoose.connect('mongodb://admin:Target#33@ds055535.mongolab.com:55535/pvc');
+} 
 
 var routes = require('./routes/index');
 var users = require('./routes/users');

@@ -6,15 +6,13 @@ The goal of this project is to create a simple UI that can:
 
 
 TODO:
-: Figure out how to break out Controllers based on controllers/index.js
-	: For now, call each object's controller on the routes/index page and call them as var's
-: Update Obj model to be able to store a generic large object for offline work
+: Update workspace controller and other controllers to have router only control the routes
 : Build error handling helper that will pass support messages
 	: If PLM gives Error 500, give ability to 
 		: Check for Ping
 		: Re-Authorize
-: When completeing a wine's todo --- hit Wine/:id/Todos/Incomplete with a get and return all outstanding To-Dos
 : List the date created next to the comments
+: I need to learn how to insert Users and Oath into my site
 
 
 Requirements

@@ -2,9 +2,12 @@ var express = require('express');
 var router = express.Router();
 var mongoose = require('mongoose');
 
+var messages = require('../helpers/mailgun')
+
 var todoController = require('../controllers/todo')
 var wineController = require('../controllers/wine')
 var userController = require('../controllers/user')
+var authController = require('../controllers/auth')
 
 // These must all be REQUIRED in app.js by requiring the models
 var Workspace = mongoose.model('Workspaces') 
@@ -18,13 +21,16 @@ var User = mongoose.model('User')
 
 //var controller = require('../controllers/index')
 
+router.route('/submit')
+	.post(messages.sendMail)
+
 router.route('/users')
 	.post(userController.postUsers)
-	.get(userController.getUsers);
+	.get(authController.isAuthenticated, userController.getUsers);
 
 router.route('/todos')
-	.get(todoController.todoGet)
-	.post(todoController.todoPost)
+	.get(authController.isAuthenticated, todoController.todoGet)
+	.post(authController.isAuthenticated, todoController.todoPost)
 
 router.route('/todos/incomplete')
 	.get(todoController.todoGetIncomplete)

@@ -45,6 +45,10 @@ app.factory('wines', ['$http', function($http){
 		})
 	}
 
+	o.sendMail = function(todo){
+		return $http.post('/submit', todo)
+	}
+
 	return o;
 }])
 
@@ -162,12 +166,17 @@ app.controller('WineCtrl', [
 				name: $scope.name,
 				summary: $scope.summary,
 				wines: $scope.wine
+
 			};
 				wines.addToDo(tempToDo).success(function(todo){
 					$scope.wine.todos.push(todo)
 				})
 				$scope.name = '';
 				$scope.summary = '';
+		}
+
+		$scope.sendMail = function(todo){
+			wines.sendMail(todo)
 		}
 
 		$scope.addComment = function(){

@@ -5,6 +5,10 @@
   "scripts": {
     "start": "node ./bin/www"
   },
+  "engines":{
+    "node": "4.2.x",
+    "npm": "2.14.x"
+    },
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "~1.13.2",
@@ -13,6 +17,7 @@
     "ejs": "~2.3.3",
     "express": "~4.13.1",
     "grunt": "latest",
+    "mailgun-js": "^0.7.7",
     "mongoose": "^4.3.7",
     "morgan": "~1.6.1",
     "passport": "^0.3.2",
