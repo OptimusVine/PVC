@@ -20,6 +20,7 @@ passport.use(new BasicStrategy(
         if (!isMatch) { return callback(null, false); }
 
         // Success
+        console.log(user)
         return callback(null, user);
       });
     });

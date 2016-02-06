@@ -5,21 +5,21 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
-var r = require('rethinkdb');
+var passport = require('passport');
+var session = require('express-session');
+var flash = require('connect-flash');
 
-var config = require('./config/config');
+// var LocalStrategy = require('passport-local').Strategy
 
+require('./config/passport')(passport);
 require('./models/index');
 
 var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development'
 
-// mongoose.connect('mongodb://localhost/wines');
+var config = require('./config/config');
+var configDB = require('./config/database.js')
 
-if (env === 'development'){
-   mongoose.connect('mongodb://localhost/wines');
-} else {
-mongoose.connect('mongodb://admin:Target#33@ds055535.mongolab.com:55535/pvc');
-} 
+mongoose.connect(configDB.url[env])
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -37,7 +37,20 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+
+app.use(require('express-session')({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: false
+}));
+
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(session({ secret: 'miloisagooddog'}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash()); // use connect-flash for flash messages stored in session
 
 app.use('/', routes);
 app.use('/users', users);

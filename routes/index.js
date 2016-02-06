@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var passport = require('passport');
 var mongoose = require('mongoose');
 
 var messages = require('../helpers/mailgun')
@@ -16,10 +17,19 @@ var Obj = mongoose.model('Obj')
 var ToDo = mongoose.model('ToDo')
 var Wine = mongoose.model('Wine') 
 var User = mongoose.model('User')
+//var Account = mongoose.model('Account')
 
 // var plmAuth = require('../middlewares/auth/autodeskplm'); // Check TO-DO code for a change here
 
 var controller = require('../controllers/index')
+
+var isLoggedIn = function(req, res, next){
+	if(req.isAuthenticated()){
+		return next();
+	}
+	console.log("we're about to redirect")
+	res.redirect('/')
+}
 
 router.route('/submit')
 	.post(messages.sendMail)
@@ -41,8 +51,136 @@ router.route('/todos/:todo')
 
 
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', {user: req.user});
 });
+
+
+  // =========================================================================
+  // AUTHORIZATION ROUTES AND LOGIC ==========================================
+  // =========================================================================
+router.route('/signup')
+	.get(function(req, res){
+		res.render('signup.ejs', { message: req.flash('signupMessage')});
+	})
+	.post(passport.authenticate('local-signup', {
+		successRedirect : '/profile',
+		failureRedirect : '/signup',
+		failureFlash : true
+	}))
+
+
+
+router.route('/profile')
+	.get(isLoggedIn, function(req, res){
+		res.json(req.user)
+	})
+
+router.route('/auth')
+	.get(function(req, res){
+		res.render('auth.ejs');
+	})
+
+router.route('/login')
+	.get(function(req, res){
+		res.render('login', {user : req.user, message: req.flash('LoginMessage')});
+	})
+	.post(function(req, res, next){
+		passport.authenticate('local-login', function(err, user, info){
+			if(err){
+				return res.status(500).json({err:err});
+			}
+			if(!user){
+				return res.status(401).json({err:info});
+			}
+			req.logIn(user, function(err){
+				if(err){
+					return res.status(500).json({err: 'Could not load'})
+				}
+				res.status(200).json({status: 'Login Successful'})
+			})
+		})(req, res, next);
+	})
+
+// FACEBOOK ROUTES
+// route for facebook authentication and login
+router.route('/auth/facebook')
+	.get(passport.authenticate('facebook', {scope: 'email'}));
+// handle the callback after facebook has authenicated the user
+router.route('/auth/facebook/callback')
+	.get(passport.authenticate('facebook', {
+		successRedirect: '/#/profile',
+		failureRedirect: '/'
+	}))
+
+// GOOGLE ROUTES
+// route for google authentication and login
+router.route('/auth/google')
+	.get(passport.authenticate('google', {scope: ['profile', 'email'] }))
+// the callback after google has authenticated the user
+router.route('/auth/google/callback')
+	.get(passport.authenticate('google', {
+		successRedirect: '/#/profile',
+		failureRedirect: '/'
+	}))
+
+// Authorize --- CONNECTING EXISTING USER TO OTHER SOCIAL ACCOUNTS
+	//LOCALLY
+router.route('/connect/local')
+	.get(function(req, res){
+	res.render('connect-local.ejs', { message: req.flash('LoginMessage')})
+	})
+	.post(passport.authenticate('local-signup', {
+		successRedirect: '/#/profile',
+		failureRedirect: '/connect/local',
+		failureFlash: true
+	}))
+
+	//FACEBOOK
+router.route('/connect/facebook')
+	.get(passport.authorize('facebook', {scope: 'email'}))
+
+router.route('/connect/facebook/callback')
+	.get(passport.authorize('facebook', {
+		successRedirect: '/profile',
+		failureRedirect: '/'
+	}))
+
+	//GOOGLE
+router.route('/connect/google')
+	.get(passport.authorize('google', {scope: ['profile', 'email']}))
+
+router.route('/connect/google/callback')
+	.get(passport.authorize('google', {
+		successRedirect: '/profile',
+		failureRedirect: '/'
+	}))
+
+router.get('/logout', function(req, res) {
+	   	req.logout();
+    	res.redirect('/');
+});
+
+router.route('/unlink/facebook')
+	.get(function(req, res){
+		var user = req.user;
+		user.facebook.token = undefined;
+		user.save(function(err){
+			res.redirect('/#/profile');
+		})
+	})
+
+router.route('/unlink/google')
+	.get(function(req, res){
+		var user = req.user;
+		user.google.token = undefined;
+		user.save(function(err){
+			res.redirect('/profile');
+		})
+	})
+
+  // =========================================================================
+  // END OF AUTH ROUTES  =====================================================
+  // =========================================================================
 
 router.route('/comments')
 	.get(function(req, res, next){
@@ -51,7 +189,7 @@ router.route('/comments')
 	});
 
 router.route('/wines')
-	.get(wineController.wineGet)
+	.get(isLoggedIn, wineController.wineGet)
 	.post(wineController.winePost);
 
 
@@ -134,10 +272,6 @@ router.route('/external/PLM/workspaces/52/items/:record')
 		controller.fetchPlmWine(req, res);
 	})
 
-router.param('record', function(req, res, next, id){
-	req.record = id;
-	return next();
-})
 
 router.get('/test/wine', function(req, res, next){
 		var wine = plmAuth.receiveWine()
@@ -145,6 +279,12 @@ router.get('/test/wine', function(req, res, next){
 		obj.save();
 		res.json(obj)
 
+})
+
+
+router.param('record', function(req, res, next, id){
+	req.record = id;
+	return next();
 })
 
 router.param('workspace', function(req, res, next, id){

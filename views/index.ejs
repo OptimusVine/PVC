@@ -8,16 +8,119 @@
   <style> .glyphicon-thumbs-up { cursor:pointer } </style>
 </head>
   <body ng-app="PVC">
-  	<h2> </h2>
+
+    <nav class="navbar navbar-default pull-right" ng-controller="navCtrl">
+        <ul class="nav navbar-nav">
+      <li ng-show="isLoggedIn()"><a>{{ currentUser() }}</a></li>
+      <li ng-show="isLoggedIn()"><a href="/#" ng-click="logOut()">Log Out</a></li>
+      <li ng-hide="isLoggedIn()"><a href="/#/login">Log In</a></li>
+      <li ng-hide="isLoggedIn()"><a href="/#/register">Register</a></li>
+    </ul>
+  </nav>
+
+  	<h2> PVC</h2>
 
   	<div>
-  		<ui-view></ui-view>
+  		<ui-view>
+      </ui-view>
   	</div>
+
+  <script type="text/ng-template" id="/profile.html">
+    <div class="container">
+
+    <div class="page-header text-center">
+        <h1><span class="fa fa-anchor"></span> Profile Page</h1>
+        <a href="/logout" class="btn btn-default btn-sm">Logout</a>
+    </div>
+
+    <div class="row">
+
+        <!-- LOCAL INFORMATION -->
+        <div class="col-sm-6">
+            <div class="well">
+                <h3><span class="fa fa-user"></span> Local</h3>
+
+                    <div ng-show="user.local.email">
+                    <p>
+                        <strong>id</strong>: {{ user._id }}<br>
+                        <strong>email</strong>: {{ user.local.email }}<br>
+                    </p>
+                    <a href="/unlink/local" class="btn btn-default">Unlink</a>
+                    </div>
+                    <div ng-hide="user.local.email">
+                    <a href="/connect/local" class="btn btn-default">Connect Local</a>
+                    </div>
+            </div>
+        </div>
+
+        <!-- FACEBOOK INFORMATION -->
+        <div class="col-sm-6">
+            <div class="well">
+                <h3 class="text-primary"><span class="fa fa-facebook"></span> Facebook</h3>
+
+                    <!-- check if the user has this token (is the user authenticated with this social account) -->
+
+                    <div ng-show="user.facebook.token">
+                    <p>
+                        <strong>id</strong>: {{ user.facebook.id }}<br>
+                        <strong>email</strong>: {{ user.facebook.email }}<br>
+                        <strong>name</strong>: {{ user.facebook.name }}
+                    </p>
+                    <a href="/unlink/facebook" class="btn btn-default">Unlink</a>
+                    </div>
+                    <div ng-hide="user.facebook.token">
+                    <a href="/connect/facebook" class="btn btn-default">Connect Facebook</a>
+                    </div>             
+            </div>
+        </div>
+        <!-- GOOGLE INFORMATION -->
+        <div class="col-sm-6">
+            <div class="well">
+                <h3 class="text-danger"><span class="fa fa-google-plus"></span> Google</h3>
+
+                    <!-- check if the user has this token (is the user authenticated with this social account) -->
+                <div ng-show="user.google.token">
+                    <p>
+                        <strong>id</strong>: {{ user.google.id }}<br>
+                        <strong>email</strong>: {{ user.google.email }}<br>
+                        <strong>name</strong>: {{ user.google.name }}
+                    </p>
+                    <a href="/unlink/google" class="btn btn-default">Unlink</a>
+                    </div>
+                    <div ng-hide="user.google.token">
+                    <a href="/connect/google" class="btn btn-default">Connect Facebook</a>
+                    </div>    
+            </div>
+        </div>
+    </div>
+      </div>
+  </script>
+
+<script type="text/ng-template" id="/login.html">
+  <div class="col-md-4">
+  <h1>Login</h2>
+  <div ng-show="error" class="alert alert-danger">{{errorMessage}}</div>
+  <form class="form" ng-submit="login()">
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" class="form-control" name="username" ng-model="loginForm.username" required>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+        <input type="password" class="form-control" name="password" ng-model="loginForm.password" required>
+      </div>
+      <div>
+        <button type="submit" class="btn btn-default" ng-disabled="disabled">Login</button>
+      </div>
+  </form>
+  </div>
+</script>
 
 
     <script type="text/ng-template" id="/home.html">
     <div style="margin-left:30px">
-      <h2>Welcome to the Main Page</h2>
+      <h2>Welcome to the Main Page, {{user}}</h2>
+      <a href="/auth">Auth Page</a>
       <h3>Select which workspace to enter</h3>
     		<div ng-repeat="workspace in workspaces">
          <a href="#/wines"> {{ workspace.data.label }} </a>
@@ -163,10 +266,12 @@
         
           <span style="font-size:20px; margin-left:10px;">
             <span ng-hide="todo.complete">  
-            <button class="btn btn-primary" 
-            ng-click="completeToDo(todo._id)">X</button>
-            To-Do: {{todo.name}} </span>
-                        <span ng-click="sendMail(todo)"> - Send - </span>
+              <button class="btn btn-primary" 
+                ng-click="completeToDo(todo._id)">X</button>
+                  To-Do: {{todo.name}} 
+            
+            <span ng-click="sendMail(todo)"> - Send - </span>
+              </span>
           </span>
         </div>
 

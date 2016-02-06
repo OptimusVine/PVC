@@ -8,12 +8,15 @@ var Wine = mongoose.model('Wine')
 
 exports.wineGet = function(req, res, next){
 	Wine.find(function(err, wines){
+		console.log('Controller - Wine user : ' + req.user)
 		res.json(wines)
 	})
 }
 
 exports.winePost = function(req, res, next){
 		var wine = new Wine(req.body);
+		wine.owner_id = req.user._id
+		console.log(req.user)
 		// post.author = req.payload.username;
 		wine.save(function(err, wine){
 			if(err){return next(err);}
