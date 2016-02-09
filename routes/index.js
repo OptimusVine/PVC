@@ -3,9 +3,8 @@ var router = express.Router();
 var passport = require('passport');
 var mongoose = require('mongoose');
 
-var expressJWT = require('express-JWT')
+var expressJWT = require('express-jwt')
 var jwt = require('jsonwebtoken')
-//var jwt = require('express-JWT')
 var secret = require('../private/keys.js').JWT.secret
 var auth = expressJWT({secret: secret}).unless({path: ['/']})
 
