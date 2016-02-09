@@ -9,11 +9,15 @@ var passport = require('passport');
 var session = require('express-session');
 var flash = require('connect-flash');
 
+//var expressJWT = require('express-JWT')
+var jwt = require('jsonwebtoken')
+
 // var LocalStrategy = require('passport-local').Strategy
 
 require('./config/passport')(passport);
 require('./models/index');
 
+var keys = require('./private/keys')
 var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development'
 
 var config = require('./config/config');
@@ -30,6 +34,7 @@ var app = express();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+//app.set('superSecret', keys.JWT.secret)
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -37,6 +42,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+//app.use(expressJWT({secret: keys.JWT.secret}))
 
 
 app.use(require('express-session')({

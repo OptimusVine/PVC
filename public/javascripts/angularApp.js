@@ -4,7 +4,7 @@ var app = angular.module('PVC', ['ui.router']);
   // FACTORIES ===============================================================
   // =========================================================================
 
-app.factory('auth', ['$q', '$timeout', '$http', function($q, $timeout, $http){
+app.factory('auth', ['$q', '$timeout', '$http', '$window', function($q, $timeout, $http, $window){
 	//create user variable
 	var user = null;
 
@@ -12,14 +12,30 @@ app.factory('auth', ['$q', '$timeout', '$http', function($q, $timeout, $http){
 		isLoggedIn: isLoggedIn,
 		getUserStatus: getUserStatus,
 		login: login,
-		logout, logout,
-		register, register
+		logout: logout,
+		register: register,
+		checkVerify: checkVerify
 	})
 
 	function isLoggedIn(){
-		if(user){return true;} 
+		if(localStorage['PVC-Token']){return true;} 
 		else {return false;}
 		}
+
+	function checkVerify(){
+		console.log('Hitting /verify with : ' + $window.localStorage)
+		$http.get('/api', {
+			headers: {Authorization: 'Bearer ' + $window.localStorage['PVC-Token']}
+		})
+			.success(function(data){
+				console.log(data)
+				return true;
+			})
+			.error(function(data){
+				console.log(data)
+				return false;
+			})
+	}
 
 	function getUserStatus(){
 		return user;
@@ -28,6 +44,7 @@ app.factory('auth', ['$q', '$timeout', '$http', function($q, $timeout, $http){
 	function login(username, password){
 		// create a new instance of deferred
 		var deferred = $q.defer();
+		user = null;
 
 		//send a post request to the user
 		$http.post('/login', {email: username, password, password})
@@ -35,7 +52,8 @@ app.factory('auth', ['$q', '$timeout', '$http', function($q, $timeout, $http){
 			.success(function(data, status){
 				if (status === 200 && data.status){
 					user = true;
-					console.log('success here')
+					$window.localStorage['PVC-Token'] = data.token;
+					//console.log(data)
 					deferred.resolve();
 				}
 			})
@@ -53,11 +71,14 @@ app.factory('auth', ['$q', '$timeout', '$http', function($q, $timeout, $http){
 		// create a new instance of deferred
 		  var deferred = $q.defer();
 
+
 		  // send a get request to the server
 		  $http.get('/logout')
 		    // handle success
 		    .success(function (data) {
 		      user = false;
+		      localStorage.clear();
+		  	  console.log('Token after Logout : ' + $window.localStorage['PVC-Token'])
 		      deferred.resolve();
 		    })
 		    // handle error
@@ -95,35 +116,39 @@ app.factory('auth', ['$q', '$timeout', '$http', function($q, $timeout, $http){
 
 	}])
 
-app.factory('wines', ['$http', function($http){
+app.factory('wines', ['$http', '$window', function($http, $window){
 	var o = {
 		wines: []
 	}
 
+	var token = {headers: {Authorization: 'Bearer '+ localStorage['PVC-Token']}}
+
 	o.getAll = function() {
-		return $http.get('/wines').success(function(data){
+		return $http.get('/wines', token).success(function(data){
 			angular.copy(data, o.wines);
 		});
 	};
 
 	o.create = function(wine) {
-		return $http.post('/wines', wine).success(function(data){
+		return $http.post('/wines', wine, token).success(function(data){
 			o.wines.push(data).error(console.log(error));
 		})
 	};
 
 	o.get = function(id) {
-		return $http.get('/wines/' + id).then(function(res){
+		console.log(localStorage)
+		return $http.get('/wines/' + id, token).then(function(res){
+			console.log('Did I complete this?')
 			return res.data;
 		})
 	}
 
 	o.addComment = function(id, comment) {
-		return $http.post('/wines/' + id + '/comments', comment)
+		return $http.post('/wines/' + id + '/comments', comment, token)
 	}
 
 	o.addToDo = function(toDo) {
-		return $http.post('/todos', toDo)
+		return $http.post('/todos', toDo, token)
 	}
 
 	o.markComplete = function(todo) {
@@ -131,17 +156,17 @@ app.factory('wines', ['$http', function($http){
 			}
 
 	o.getIncomplete = function(id) {
-			return $http.get('/wines/' + id + '/todos/incomplete')
+			return $http.get('/wines/' + id + '/todos/incomplete', token)
 	}
 
 	o.search = function(item) {
-		return $http.get('/search/' + item).success(function(data){
+		return $http.get('/search/' + item, token).success(function(data){
 			angular.copy(data, o.wines);
 		})
 	}
 
 	o.sendMail = function(todo){
-		return $http.post('/submit', todo)
+		return $http.post('/submit', todo, token)
 	}
 
 	return o;
@@ -199,8 +224,9 @@ app.factory('wine', ['$http', function($http){
 	return o;
 }])
 
-app.factory('user', ['$http', 'auth', function($http, auth){
+app.factory('user', ['$http', 'auth', '$window', function($http, auth, $window){
 	o = {
+		user: null,
 		google:{
 			email: null,
 			name: null,
@@ -217,9 +243,27 @@ app.factory('user', ['$http', 'auth', function($http, auth){
 
 	o.get = function(){
 		return $http.get('/profile').success(function(data){
-			angular.copy(data, o);
-			console.log(data)
-		})
+			if(o.user === null){
+				console.log('copying data ' + data)
+				angular.copy(data, o);
+				return o.user;
+			}
+			else {
+				return o.user;
+			}
+		}).error(function(error){
+			if (error) {
+				console.log("error : " + JSON.stringify(error))
+				return;
+			}  
+
+		}
+
+		)
+	}
+
+	o.logout = function(){
+		return $http.get('/logout')
 	}
 
 	return o;
@@ -233,28 +277,36 @@ app.factory('user', ['$http', 'auth', function($http, auth){
 app.controller('AuthCtrl', [
 	'$scope',
 	'user',
-	function($scope, user){
+	'$window',
+	function($scope, user, $window){
 		$scope.user = user.username;
+		console.log($window.localStorage)
 	}
 	])
 
 app.controller('navCtrl',
-	['$scope', 'auth', 
-	function($scope, auth){
+	['$scope', 'auth', '$state',
+	function($scope, auth, $state){
 		console.log('NavCtrl Auth : ' + auth.getUserStatus())
+		console.log('localStorage : ' + localStorage)
 		$scope.isLoggedIn = auth.isLoggedIn;
 		$scope.currentUser = auth.getUserStatus()
+
+		$scope.logOut = function(){
+			auth.logout()
+			localStorage.clear();
+			$state.go('home')
+		}	
 	}])
 
 app.controller('loginController', 
-	['$scope', '$state', 'auth',
-	function($scope, $state, auth){
+	['$scope', '$state', 'auth', '$window',
+	function($scope, $state, auth, $window){
 		console.log('Auth Status : ' + auth.getUserStatus())
-
 		$scope.login = function(){
 			// initial values
 			$scope.error = false;
-		//	$scope.disabled = true;
+//			$scope.disabled = true;
 
 			// call login from service
 			auth.login($scope.loginForm.username, $scope.loginForm.password)
@@ -263,6 +315,7 @@ app.controller('loginController',
 					$state.go('profile');
 					$scope.disabled = false;
 					$scope.loginForm = {};
+					return;
 				})
 				// handle error
 				.catch(function(){
@@ -270,15 +323,25 @@ app.controller('loginController',
 					$scope.errorMessage = "Invalid Username and/or password";
 				//	$scope.disabled = true;
 					$state.reload();
+					return;
 				})
+			}
+
+		$scope.verify = function(){
+			auth.checkVerify();
+			return;
+
 		}
 	}])
 
 app.controller('MainCtrl', [
 	'$scope',
 	'user',
+	'$state',
 	'workspaces',
-	function($scope, user, workspaces){
+	'$window',
+	function($scope, user, $state, workspaces, $window){
+		console.log($window.localStorage)
 		$scope.user = user.username;
   		$scope.test = 'Hello world!';
   		$scope.workspaces = workspaces.workspaces
@@ -289,9 +352,18 @@ app.controller('ProfileCtrl', [
 	'$scope',
 	'auth',
 	'user',
-	function($scope, auth, user){
+	'$state',
+	'$window',
+	function($scope, auth, user, $state, $window){
 		$scope.user = user;
-	}
+
+		$scope.logout = function(){	
+			auth.logout()
+			localStorage.clear();
+			$state.go('home')
+
+			}
+		}
 	])
 
 app.controller('WineCtrl', [
@@ -299,9 +371,11 @@ app.controller('WineCtrl', [
 	'wines',
 	'wine',
 	'auth',
-	function($scope, wines, wine, auth){
+	'$window',
+	function($scope, wines, wine, auth, $window){
 
 		console.log('Wine Ctrl Auth : ' + auth.getUserStatus());
+		console.log($window.localStorage)
 
 		$scope.wines = wines.wines;
 		if(wine){$scope.wine = wine};
@@ -315,7 +389,6 @@ app.controller('WineCtrl', [
 		}
 
 		$scope.remove = function(todo) { 
-			console.log(todo)
 			for (i = 0; i< $scope.wine.todos.length; i++){
 				if (todo === $scope.wine.todos[i]._id){
 					console.log($scope.wine.todos[i]._id + ' equals ' + todo)
@@ -414,6 +487,7 @@ function($stateProvider, $urlRouterProvider) {
   		templateUrl: '/login.html',
   		controller: 'loginController',
   		access: {restricted: false}
+  		
   	})
 
 
@@ -421,14 +495,14 @@ function($stateProvider, $urlRouterProvider) {
       url: '/home',
       templateUrl: '/home.html',
       controller: 'MainCtrl',
-      access: {restricted: true},
+      access: {restricted: false},
       resolve: {
     		workspacesPromise: ['workspaces', function(workspaces){
     			return workspaces.getPublic()
     		}]
     	}
     })
-
+ 
     .state('wines', {
     	url: '/wines',
     	templateUrl: '/wines.html',
@@ -436,7 +510,13 @@ function($stateProvider, $urlRouterProvider) {
     	access: {restricted: true},
     	resolve: {
     		winePromise: ['wines', function(wines){
-    			return wines.getAll();
+    			wines.getAll().success(function(){
+    				return;
+    			})
+    				.error(function(error){
+    					console.log(error)
+    				})
+    				
     		}]
     	}
     })
@@ -485,11 +565,20 @@ function($stateProvider, $urlRouterProvider) {
     	templateUrl: '/profile.html',
     	controller: 'ProfileCtrl',
     	access: {restricted: true},
-    	resolve: {
+    	resolve: {   		
     		userPromise: ['user', function(user){
-    			console.log('im here')
-    			return user.get();
-    		}]}
+    			if(user.user === null){
+    			//	console.log('user is null in resolve')
+    			} else {
+    				return;
+    			//	console.log('user is NOT null in resolve')
+    			}
+    			if( user.get()){
+    			// console.log('in the .get of resolve')
+    			} else {
+    			// console.log('never fired')
+    			}} 
+    		]}
     })
 
     .state('workspaces', {
@@ -510,20 +599,30 @@ function($stateProvider, $urlRouterProvider) {
 
 
  
-app.run(function ($rootScope, $state, auth) {
-  $rootScope.$on('$stateChangeStart', function (event, next, current) {
+app.run(function ($http, $rootScope, $state, auth, $window) {
+  $rootScope.$on('$stateChangeStart', function (event, next, nextParams, current, currentParams) {
   	if (next.name === 'auth') {
   		return;
   	}
-  	if (next.access.restricted && auth.isLoggedIn() === false) {
-  		console.log('Next State : ' + next.name + ' isLoggedin : ' + auth.isLoggedIn())
+  	if (next.access.restricted && !localStorage['PVC-Token']) {
+  		console.log('Next State : ' + next.name + ' Token : ' + localStorage + ' N.A.R : ' + next.access.restricted)
   		console.log('Set state to Auth')
   		event.preventDefault();
         $state.go('auth');
-    } else {
-    	console.log('Next State : ' + next.name + ' isLoggedin : ' + auth.isLoggedIn())
-    	return;
-    }
+    } else if (next.name === 'login'){
+
+    } else{
+    /*	$http.get('/verify', {headers: {Authorization: 'Bearer ' + $window.localStorage['PVC-Token']}})
+    		.success(function(){
+    			console.log('*** Token Verified, proceeding with State Change To : ' + next.name)
+    		})
+    		.error(function(){
+    			console.log($window.localStorage)
+    			console.log('Authorization has failed. Sending to Auth')
+    			event.preventDefault();
+    			$state.go('auth');
+    		}) */
+    	}
   });
 });
 

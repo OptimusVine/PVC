@@ -8,7 +8,6 @@ var Wine = mongoose.model('Wine')
 
 exports.wineGet = function(req, res, next){
 	Wine.find(function(err, wines){
-		console.log('Controller - Wine user : ' + req.user)
 		res.json(wines)
 	})
 }
@@ -29,7 +28,6 @@ exports.wineGetById = function(req, res){
 			if (err){return next(err);}
 				req.wine.populate('todos', function(err, wine){
 					if (err) {return next(err);}
-					console.log('YEah')
 					res.json(req.wine)
 				})
 			});	

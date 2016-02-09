@@ -3,6 +3,12 @@ var router = express.Router();
 var passport = require('passport');
 var mongoose = require('mongoose');
 
+var expressJWT = require('express-JWT')
+var jwt = require('jsonwebtoken')
+//var jwt = require('express-JWT')
+var secret = require('../private/keys.js').JWT.secret
+var auth = expressJWT({secret: secret}).unless({path: ['/']})
+
 var messages = require('../helpers/mailgun')
 
 var todoController = require('../controllers/todo')
@@ -25,10 +31,11 @@ var controller = require('../controllers/index')
 
 var isLoggedIn = function(req, res, next){
 	if(req.isAuthenticated()){
-		return next();
-	}
-	console.log("we're about to redirect")
-	res.redirect('/')
+			//console.log(req.user)
+			return next();
+		}
+	console.log("There is no authentication")
+	res.status(500).send('No Authentication!');
 }
 
 router.route('/submit')
@@ -40,14 +47,14 @@ router.route('/users')
 
 router.route('/todos')
 	.get(todoController.todoGet)
-	.post(todoController.todoPost)
+	.post(auth, todoController.todoPost)
 
 router.route('/todos/incomplete')
 	.get(todoController.todoGetIncomplete)
 
 router.route('/todos/:todo')
-	.get(todoController.todoGetById)
-	.put(todoController.todoPut)
+	.get(isLoggedIn, todoController.todoGetById)
+	.put(isLoggedIn, todoController.todoPut)
 
 
 router.get('/', function(req, res, next) {
@@ -71,7 +78,7 @@ router.route('/signup')
 
 
 router.route('/profile')
-	.get(isLoggedIn, function(req, res){
+	.get(function(req, res){
 		res.json(req.user)
 	})
 
@@ -80,6 +87,52 @@ router.route('/auth')
 		res.render('auth.ejs');
 	})
 
+
+router.get('/logout', function(req, res) {
+		console.log('Ive hit logged out, attempting log out now.')
+	   	req.logout();
+	   	res.redirect('/')
+});
+
+var verify = function(req, res){
+		var len = req.headers.authorization.length;
+		var str = req.headers.authorization.substring(7,len)
+	//	console.log('Hitting the verify slug with ' + str)
+	//	console.log('Secret: ' + secret)
+		var decoded = jwt.verify(str, secret)
+		jwt.verify(str, secret, function(err, decoded){
+			if(err) { 
+				console.log(err)
+				res.status(500) 
+			}
+			console.log(decoded)
+			return true;
+		})
+}
+
+router.get('/verify', function(req, res){
+		//console.log(JSON.stringify(req.headers))
+		res.json('Successfully Verified')
+})
+
+router.get('/api', function(req, res, next){
+		if(req.isAuthenticated()){
+			console.log('Authentication has passed')
+			verify(req, res)
+				.success(function(){
+					console.log('JWT has passed')
+					res.status(200).json('JWT successful');
+				})
+				.error(function(){
+					console.log('JWT FAILURE!')
+					res.status(500).json('JWT Failure!');
+				})
+		} else { 
+		console.log("There is no authentication")
+		res.status(500).send('No Authentication!');
+		}
+})
+
 router.route('/login')
 	.get(function(req, res){
 		res.render('login', {user : req.user, message: req.flash('LoginMessage')});
@@ -87,16 +140,22 @@ router.route('/login')
 	.post(function(req, res, next){
 		passport.authenticate('local-login', function(err, user, info){
 			if(err){
+				console.log('1')
 				return res.status(500).json({err:err});
 			}
 			if(!user){
+				console.log('2')
 				return res.status(401).json({err:info});
 			}
 			req.logIn(user, function(err){
 				if(err){
+					console.log(err)
+					console.log(user)
 					return res.status(500).json({err: 'Could not load'})
 				}
-				res.status(200).json({status: 'Login Successful'})
+				var myToken = jwt.sign(user, secret);
+				//console.log(myToken)
+				res.status(200).json({status: 'Login Successful', token: myToken})
 			})
 		})(req, res, next);
 	})
@@ -155,10 +214,6 @@ router.route('/connect/google/callback')
 		failureRedirect: '/'
 	}))
 
-router.get('/logout', function(req, res) {
-	   	req.logout();
-    	res.redirect('/');
-});
 
 router.route('/unlink/facebook')
 	.get(function(req, res){
@@ -189,19 +244,19 @@ router.route('/comments')
 	});
 
 router.route('/wines')
-	.get(isLoggedIn, wineController.wineGet)
-	.post(wineController.winePost);
+	.get(auth, wineController.wineGet)
+	.post(auth, wineController.winePost);
 
 
 router.route('/wines/:wine')
-	.get(wineController.wineGetById)
+	.get(auth, wineController.wineGetById)
 
 router.route('/wines/:wine/comments')
-	.get(wineController.wineGetByIdComments)
-	.post(wineController.winePostByIdComments)
+	.get(auth, wineController.wineGetByIdComments)
+	.post(auth, wineController.winePostByIdComments)
 
 router.route('/wines/:wine/todos/incomplete')
-	.get(wineController.wineGetByIdTodosIncomplete)
+	.get(auth, wineController.wineGetByIdTodosIncomplete)
 
 router.route('/workspaces')
 	.get(function(req, res, next){
