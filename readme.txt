@@ -6,12 +6,21 @@ The goal of this project is to create a simple UI that can:
 
 
 TODO:
+: TEST 1
+	: Create a new Wine via the UI
+	: Add a comment to the wine
+	: Add a Todo, that ToDo should populate into Asana
+	: That Todo should be linked to the Wine and be visible in /todos
+	: Default Assignee of Task is [NULL]
+	: Click "reassign" and have a form that lets me select assignees
+	: Select Kjiel, this should update to [KJIEL]
+	: /:wine page should have a summary
+		: Number of comments
+		: Number of Todos (with closest due date
+		
+
 : AUTH
-	: Maintain Logged in Status through all sessions on browser
-		: Get a JWT into $window.localstorage
-		: Once logged in, with token, refreshing a page should not take you back to login
-		: Logging out should remove the JWT from the browser
-		: routes/index isLoggedIn will return false if the user has logged out
+
 : TEST
 	: Build test cases to ensure all "restricted" endpoints require a user to be logged in
 : Update workspace controller and other controllers to have router only control the routes
@@ -21,13 +30,7 @@ TODO:
 		: Re-Authorize
 : List the date created next to the comments
 
-
-HOW JWT WILL WORK
-	: A successful authentication via passport will create a Token
-		var myToken = jwt.sign({ payload: ????}, secret);
-	: Payload will be the USER with Google, Facebook and Local Auth
-	: That token will be sent via the request to angularApp.js
-
+ADAM - Asana ID: 51033105522142
 
 Requirements
 - When a user goes to the site, it will prompt for wines 

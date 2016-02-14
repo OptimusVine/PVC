@@ -91,7 +91,7 @@ app.factory('auth', ['$q', '$timeout', '$http', '$window', function($q, $timeout
 		  return deferred.promise;
 	}
 
-    function register(){
+    function register(username, password){
 	// create a new instance of deferred
 	 var deferred = $q.defer();
 
@@ -212,6 +212,10 @@ app.factory('todos', ['$http', function($http){
 			})
 		}
 
+		o.assignTodo = function(asanaId, todoId){
+			return $http.put('/todos/' + todoId + '/assign/' + asanaId).success(function(){
+			})
+		}
 
 	return o
 }])
@@ -299,6 +303,31 @@ app.controller('navCtrl',
 		}	
 	}])
 
+app.controller('registerCtrl',
+	['$scope', 'auth', '$state',
+	function($scope, auth, $state){
+		console.log('localStorage : ' + localStorage)
+		$scope.isLoggedIn = auth.isLoggedIn;
+		$scope.currentUser = auth.getUserStatus()
+
+		$scope.register = function(){
+			$scope.disabled = true;
+			auth.register($scope.registerForm.username, $scope.registerForm.password)
+				.then(function(){
+					$state.go('profile');
+					$scope.registerForm={}
+					return;
+				})
+				.catch(function(){
+					$scope.error = truel
+					$scope.errorMessage = "Issue with Username or Password"
+					$state.reload();
+					return;
+				})
+		}
+
+	}])
+
 app.controller('loginController', 
 	['$scope', '$state', 'auth', '$window',
 	function($scope, $state, auth, $window){
@@ -306,8 +335,6 @@ app.controller('loginController',
 		$scope.login = function(){
 			// initial values
 			$scope.error = false;
-//			$scope.disabled = true;
-
 			// call login from service
 			auth.login($scope.loginForm.username, $scope.loginForm.password)
 				//handle success
@@ -371,16 +398,68 @@ app.controller('WineCtrl', [
 	'wines',
 	'wine',
 	'auth',
+	'todos',
 	'$window',
-	function($scope, wines, wine, auth, $window){
+	function($scope, wines, wine, auth, todos, $window){
 
 		console.log('Wine Ctrl Auth : ' + auth.getUserStatus());
 		console.log($window.localStorage)
 
+		$scope.users = [{"name": "Kjiel Carlson", "asanaId":10363492364586},
+						{"name": "Adam S", "asanaId":10363492364586},
+						{"name": "Martin L", "asanaId":10363492364586}]
+
 		$scope.wines = wines.wines;
 		if(wine){$scope.wine = wine};
 		$scope.winesLength = wines.wines.length;
+		$scope.commentsVisible = true;
+		$scope.formAssign = false;
+
+		$scope.toAssign = null;
+
+		$scope.assignToDo = function(todoId, choice){
+			console.log("choice : " + choice)
+
+			todos.assignTodo(choice, todoId)
+			.success(function(){
+				console.log('Assign Complete');
+				$scope.toAssign = null;
+				for(i=0; i<wine.todos.length; i++){
+					if (wine.todos[i]._id === todoId){
+						console.log('MATCHED WINES.TODO ID to TODOID ' + todoId)
+						// This is currently hard coded to Kjiel
+
+						// MUST BE CHANGE TO WORK FOR REAL
+						wine.todos[i].asana_assignee = $scope.users[0]
+					}
+				}
+			})
+		}
+
+		$scope.canEdit = function(todoId){
+			if ($scope.toAssign === todoId){
+				//console.log(todo._id)
+				//console.log($scope.toAssign)
+				return true;
+			} else {
+				return false;
+			}
+		}
 		
+		$scope.hideComments = function(){
+			$scope.commentsVisible = false;
+		}
+
+		$scope.showComments = function(){
+			$scope.commentsVisible = true;
+		}
+
+		$scope.wantToAssign = function(todoId){
+			//$scope.formAssign = true;
+			$scope.toAssign = todoId;
+			console.log ($scope.toAssign);
+		}
+
 		$scope.completeToDo = function(todo){
 			wines.markComplete(todo)
 			.success(function(){
@@ -490,6 +569,13 @@ function($stateProvider, $urlRouterProvider) {
   		
   	})
 
+  	.state('register', {
+  		url: '/register',
+  		templateUrl: '/login.html',
+  		controller: 'loginController',
+  		access: {restricted: false}
+  		
+  	})
 
     .state('home', {
       url: '/home',
@@ -612,7 +698,7 @@ app.run(function ($http, $rootScope, $state, auth, $window) {
     } else if (next.name === 'login'){
 
     } else{
-    /*	$http.get('/verify', {headers: {Authorization: 'Bearer ' + $window.localStorage['PVC-Token']}})
+    	$http.get('/verify', {headers: {Authorization: 'Bearer ' + $window.localStorage['PVC-Token']}})
     		.success(function(){
     			console.log('*** Token Verified, proceeding with State Change To : ' + next.name)
     		})
@@ -621,7 +707,7 @@ app.run(function ($http, $rootScope, $state, auth, $window) {
     			console.log('Authorization has failed. Sending to Auth')
     			event.preventDefault();
     			$state.go('auth');
-    		}) */
+    		}) 
     	}
   });
 });

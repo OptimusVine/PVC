@@ -9,6 +9,8 @@ var ToDoSchema = new mongoose.Schema({
 	dateCompleted: {type: Date},
 	owner_id: String,
 	complete: {type: Boolean, default: false},
+	asana_id: {type: Number},
+	asana_assignee: {type: Object},
 	wines: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Wine'}]
 });
 

@@ -18,9 +18,6 @@
       <li ng-show="isLoggedIn()"><a href="/#/home">Home</a></li>
     </ul>
   </nav>
-
-  	<h2> PVC</h2>
-
   	<div>
   		<ui-view>
       </ui-view>
@@ -97,6 +94,27 @@
       </div>
   </script>
 
+<script type="text/ng-template" id="/register.html">
+  <div class="col-md-4">
+  <h1>Login</h2>
+  <div ng-show="error" class="alert alert-danger">{{errorMessage}}</div>
+  <form class="form" ng-submit="register()">
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" class="form-control" name="username" ng-model="registerForm.username" required>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+        <input type="password" class="form-control" name="password" ng-model="registerForm.password" required>
+      </div>
+      <div>
+        <button type="submit" class="btn btn-default" ng-disabled="disabled">Login</button>
+      </div>
+  </form>
+
+  </div>
+</script>
+
 <script type="text/ng-template" id="/login.html">
   <div class="col-md-4">
   <h1>Login</h2>
@@ -115,10 +133,6 @@
       </div>
   </form>
 
-  </div>
-
-  <div>
-    <span ng-click="verify()">VERIFY</span>
   </div>
 </script>
 
@@ -248,12 +262,23 @@
         <h3>
           {{ wine.name }}
         </h3>
-        <div ng-repeat="comment in wine.comments">
 
-          <span style="font-size:20px; margin-left:10px;">
-            {{comment.body}}
-          </span>
-      </div>
+
+<h2> Comments </h2> 
+    <span ng-show="commentsVisible" ng-click="hideComments()">HIDE</span>
+    <span ng-hide="commentsVisible" ng-click="showComments()">SHOW</span>
+<table class="table table-condensed" ng-show="commentsVisible">
+  <tr>
+    <th>Comment</th>
+    <th>Author</th>
+    <th>Date</th>
+  </tr>
+  <tr ng-repeat="comment in wine.comments">
+    <td>{{comment.body}}</td>
+    <td>{{comment.author}}</td>
+    <td>{{comment.dateCreated}}</td>
+  </tr>
+</table>
 
         <form ng-submit="addComment()"
           style="margin-top:30px;">
@@ -268,18 +293,38 @@
           <button type="submit" class="btn btn-primary">Post</button>
         </form>
 
-        <div ng-repeat="todo in wine.todos">
-        
-          <span style="font-size:20px; margin-left:10px;">
-            <span ng-hide="todo.complete">  
-              <button class="btn btn-primary" 
-                ng-click="completeToDo(todo._id)">X</button>
-                  To-Do: {{todo.name}} 
-            
-            <span ng-click="sendMail(todo)"> - Send - </span>
-              </span>
-          </span>
-        </div>
+
+<h2>TODOs for the Wine</h2>
+<table class="table table-condensed">
+  <tr>
+    <th>Name</th>
+    <th>Due Date</th>
+    <th>Assignee</th>
+    <th>Complete</th>
+    <th>Email</th>
+  </tr>
+<tr ng-repeat="todo in wine.todos" ng-hide="todo.complete">
+  <td>{{todo.name}}</td>
+  <td>{{todo.dateDue | date : 'MM-dd-yyyy'}}</td>
+  <td>    <span ng-show="todo.asana_assignee.name">{{todo.asana_assignee.name}}</span>
+         <button ng-hide="todo.asana_assignee || canEdit(todo._id)" ng-click="wantToAssign(todo._id)">Assign</button>
+           
+            <span ng-show="canEdit(todo._id) && !todo.asana_assignee">
+
+<form name="assignForm" class="form-inline" ng-submit="assignToDo(todo._id, choice)">
+    <select name="assignSelect" id="assignSelect" ng-model="choice" style="form-control">
+          <option ng-repeat="user in users" value="{{user.asanaId}}" >{{user.asanaId}}</option>
+    </select>
+  <button type="submit" class="btn btn-default">Assign</button>
+</form>
+  
+            </span>
+            </td>
+  <td><button class="btn btn-info" ng-click="completeToDo(todo._id)">Complete</button></td>
+  <td><button class="btn btn-info" ng-click="sendMail(todo._id)">Email</button></td>
+</tr>
+
+</table>
 
         <form ng-submit="addToDo()"
           style="margin-top:30px;">

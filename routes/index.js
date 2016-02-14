@@ -14,6 +14,7 @@ var todoController = require('../controllers/todo')
 var wineController = require('../controllers/wine')
 var userController = require('../controllers/user')
 var authController = require('../controllers/auth')
+//var workspaceController = require('../controllers/workspace')
 
 // These must all be REQUIRED in app.js by requiring the models
 var Workspace = mongoose.model('Workspaces') 
@@ -37,12 +38,28 @@ var isLoggedIn = function(req, res, next){
 	res.status(500).send('No Authentication!');
 }
 
+router.get('/admin/update/workspaces', function(req, res, next){
+	var counter = 0;
+	plmAuth.getWorkspaces(function(result){
+			var workspaceData = result
+			// res.write(JSON.stringify(workspaceData, null, 2));
+			workspaceData.forEach(function(workspace){
+				var tempWorkspace = new Workspace(workspace)
+				tempWorkspace.addWorkspace();
+				counter = counter + 1;
+			})
+		})
+		res.send('Workspaces Updated with ' + counter + ' workspaces');
+	})
+
+router.get('/admin/update/todos', todoController.getAsanaTasks)
+
 router.route('/submit')
 	.post(messages.sendMail)
 
-router.route('/users')
-	.post(userController.postUsers)
-	.get(userController.getUsers);
+//router.route('/users')
+//	.post(userController.postUsers)
+//	.get(userController.getUsers);
 
 router.route('/todos')
 	.get(todoController.todoGet)
@@ -54,6 +71,9 @@ router.route('/todos/incomplete')
 router.route('/todos/:todo')
 	.get(isLoggedIn, todoController.todoGetById)
 	.put(isLoggedIn, todoController.todoPut)
+
+router.route('/todos/:todo/assign/:assignee')
+	.put(isLoggedIn, todoController.todoPutByIdAssign)
 
 
 router.get('/', function(req, res, next) {
@@ -74,90 +94,27 @@ router.route('/signup')
 		failureFlash : true
 	}))
 
-
-
 router.route('/profile')
-	.get(function(req, res){
-		res.json(req.user)
-	})
+	.get(userController.getProfile)
 
 router.route('/auth')
 	.get(function(req, res){
 		res.render('auth.ejs');
 	})
 
+router.route('/logout')
+	.get(userController.getLogout)
 
-router.get('/logout', function(req, res) {
-		console.log('Ive hit logged out, attempting log out now.')
-	   	req.logout();
-	   	res.redirect('/')
-});
-
-var verify = function(req, res){
-		var len = req.headers.authorization.length;
-		var str = req.headers.authorization.substring(7,len)
-	//	console.log('Hitting the verify slug with ' + str)
-	//	console.log('Secret: ' + secret)
-		var decoded = jwt.verify(str, secret)
-		jwt.verify(str, secret, function(err, decoded){
-			if(err) { 
-				console.log(err)
-				res.status(500) 
-			}
-			console.log(decoded)
-			return true;
-		})
-}
-
-router.get('/verify', function(req, res){
+router.get('/verify', auth, function(req, res){
 		//console.log(JSON.stringify(req.headers))
 		res.json('Successfully Verified')
-})
-
-router.get('/api', function(req, res, next){
-		if(req.isAuthenticated()){
-			console.log('Authentication has passed')
-			verify(req, res)
-				.success(function(){
-					console.log('JWT has passed')
-					res.status(200).json('JWT successful');
-				})
-				.error(function(){
-					console.log('JWT FAILURE!')
-					res.status(500).json('JWT Failure!');
-				})
-		} else { 
-		console.log("There is no authentication")
-		res.status(500).send('No Authentication!');
-		}
 })
 
 router.route('/login')
 	.get(function(req, res){
 		res.render('login', {user : req.user, message: req.flash('LoginMessage')});
 	})
-	.post(function(req, res, next){
-		passport.authenticate('local-login', function(err, user, info){
-			if(err){
-				console.log('1')
-				return res.status(500).json({err:err});
-			}
-			if(!user){
-				console.log('2')
-				return res.status(401).json({err:info});
-			}
-			req.logIn(user, function(err){
-				if(err){
-					console.log(err)
-					console.log(user)
-					return res.status(500).json({err: 'Could not load'})
-				}
-				var myToken = jwt.sign(user, secret);
-				//console.log(myToken)
-				res.status(200).json({status: 'Login Successful', token: myToken})
-			})
-		})(req, res, next);
-	})
+	.post(userController.postLogin)
 
 // FACEBOOK ROUTES
 // route for facebook authentication and login
@@ -289,19 +246,7 @@ router.route('/workspaces/:workspace/public')
 		})
 	})
 
-router.get('/admin/update/workspaces', function(req, res, next){
-	var counter = 0;
-	plmAuth.getWorkspaces(function(result){
-			var workspaceData = result
-			// res.write(JSON.stringify(workspaceData, null, 2));
-			workspaceData.forEach(function(workspace){
-				var tempWorkspace = new Workspace(workspace)
-				tempWorkspace.addWorkspace();
-				counter = counter + 1;
-			})
-		})
-		res.send('Workspaces Updated with ' + counter + ' workspaces');
-	})
+
 
 router.route('/workspaces/:workspace')
 	.get(function(req, res, next){
@@ -377,6 +322,10 @@ router.param('search', function(req, res, next, query){
 		return next()
 	})
 
+router.param('assignee', function(req, res, next, assignee){
+	req.assignee = assignee;
+		return next()
+	})
 
 
 
