@@ -194,7 +194,7 @@ var addTaskToProject = function(task, project){
 			console.log(response.body)
 		} else {
 		console.log('Status Code: ' + response.statusCode)
-		console.log(response.body)
+	//	console.log(response.body)
 		}
 })
 }
@@ -209,7 +209,7 @@ exports.getTasks = function(req, res, cb){
 		} else {
 		console.log('Status Code: ' + response.statusCode)
 		var resBody = JSON.parse(response.body);
-		console.log(resBody)
+	//	console.log(resBody)
 		cb(resBody);
 		}
 })
@@ -242,7 +242,7 @@ exports.enterAsanaTodo = function(asanaRecord){
 // The function will check Asana for more details and update the record appropriately.
 var updateAsanaTodo = function(asanaResult){
 	if (asanaResult.id){
-		console.log(asanaResult.id + " id's is " + asanaResult.name)
+		//console.log(asanaResult.id + " id's is " + asanaResult.name)
 		conditions = {'asana_id': asanaResult.id};
 		update = {  name: asanaResult.name,
 					summary: asanaResult.notes,
@@ -251,10 +251,10 @@ var updateAsanaTodo = function(asanaResult){
 					dataAdded: asanaResult.created_at,
 					asana_assignee: asanaResult.assignee
 				};
-		console.log(update)
+		//console.log(update)
 		queryF = ToDo.findOneAndUpdate(conditions, update)
 		queryF.exec(function(err, todo){
-			console.log('Query executed with result: ' + todo)
+		//	console.log('Query executed with result: ' + todo)
 			return;
 		})
 		

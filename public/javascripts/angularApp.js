@@ -166,7 +166,11 @@ app.factory('wines', ['$http', '$window', function($http, $window){
 	}
 
 	o.sendMail = function(todo){
-		return $http.post('/submit', todo, token)
+		console.log(todo);
+		console.log(token);
+		return $http.post('/submit', todo, token).error(function(err){
+			console.log(err)
+		})
 	}
 
 	return o;

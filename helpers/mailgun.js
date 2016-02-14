@@ -10,6 +10,7 @@ var data = {
 };
 
 exports.sendMail = function(req, res, next){
+	console.log('Im in the function')
 	var b = req.body
 	console.log(b)
 

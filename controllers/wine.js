@@ -45,6 +45,11 @@ exports.wineGetByIdComments = function(req, res, next){
 exports.winePostByIdComments = function(req, res, next){
 		var comment = new Comment(req.body);
 		comment.wine = req.wine;
+		console.log(req.user._doc.local.displayName)
+		comment.author = req.user._doc.local.displayName;
+		console.log(Date.now())
+		comment.dateCreated = Date.now();
+
 		comment.save(function(err, comment){
 			if (err) { return next(err);}
 			req.wine.comments.push(comment);

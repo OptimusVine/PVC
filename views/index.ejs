@@ -27,7 +27,8 @@
     <div class="container">
 
     <div class="page-header text-center">
-        <h1><span class="fa fa-anchor"></span> Profile Page</h1>
+        <h1><span class="fa fa-anchor"> Profile Page : {{user.local.displayName}}</h1></span>
+        
         <span class="btn btn-default btn-sm" ng-click="logout()" >Logout</span>
     </div>
 
@@ -276,7 +277,7 @@
   <tr ng-repeat="comment in wine.comments">
     <td>{{comment.body}}</td>
     <td>{{comment.author}}</td>
-    <td>{{comment.dateCreated}}</td>
+    <td>{{comment.dateCreated | date : 'MM-dd-yyyy'}}</td>
   </tr>
 </table>
 
@@ -321,7 +322,7 @@
             </span>
             </td>
   <td><button class="btn btn-info" ng-click="completeToDo(todo._id)">Complete</button></td>
-  <td><button class="btn btn-info" ng-click="sendMail(todo._id)">Email</button></td>
+  <td><button class="btn btn-info" ng-click="sendMail(todo)">Email</button></td>
 </tr>
 
 </table>
