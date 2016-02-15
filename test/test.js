@@ -5,6 +5,8 @@ var request = require('request');
 var chaiHttp = require('chai-http');
 var should = chai.should();
 
+
+
 chai.use(chaiHttp);
 
 var app = 'http://localhost:3000'
@@ -19,12 +21,39 @@ var testWine = {
 	vintage: 2000
 }
 
-before(function(){
-	expected = ['a', 'b', 'c'];
+describe('Comparing Numbers', function(){
+	it('1 should equal 1', function(){
+		expect(1).to.equal(1);
+	})
+	it('2 should be greater than 1', function(){
+		expect(2).to.be.greaterThan(1)
+	})
 })
 
+describe('Authentication', function(){
+	it('should take an email and password', function(done){
+	chai.request(app)
+		.post('/login')
+		.send({email: "kjiel.carlson@gmail.com", password: "levine#33"})
+		.end(function(err, res){
+			expect(err).to.be.null;
+			expect(res).to.have.status(200)
+			done();
+		})
+	})
 
+	it('should NOT require a password to GET /login', function(done){
+		chai.request(app)
+			.get('/#/login')
+			.end(function(err, res){
+			expect(err).to.be.null;
+			expect(res).to.have.status(200)
+			done();
+		})
+	})
+})
 
+/*
 
 describe('Routes for Wines', function(){
 	it('should return a post with a Status-200 JSON', function (){
@@ -48,18 +77,18 @@ describe('Routes for Wines', function(){
 	})
 })
 
-describe('Website returning 200', function(){
-	it('should return 200', function (done) {
+describe('Main Page', function(){
+	it('should return 401', function (done) {
 		var options = {
 		    url: 'http://localhost:3000',
 		    headers: {
 		     	'Content-Type': 'text/plain'
 		    } };
 		request.get(options, function (err, res, body) {
-		   	expect(res.statusCode).to.equal(200);
-		   	expect(res.body).to.contains(' test ');
+		   	expect(res.statusCode).to.equal(401);
+		//   	expect(res.body).to.contains('Welcome to the main page');
 		    done();
-		  }); }); })
+  }); }); })
 
 describe('Workspaces returning data', function(){
 	it('should return JSON on get', function (done){
@@ -101,3 +130,5 @@ describe('Array', function() {
     });
   });
 });
+
+*/
